@@ -19,4 +19,4 @@ def exporter(filename, jsoned):
 		graphml += '</graph>\n</graphml>'
 		return graphml
 	else:
-		return json.dumps(database, indent=4)
+		return json.dumps(jsoned, indent=4)
