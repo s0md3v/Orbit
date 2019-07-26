@@ -1,16 +1,9 @@
 import json
 import random
 
-def prepareGraph(filename):
+def prepareGraph(filename, json_dump):
     just_nodes = []
     jsoned = {'nodes': [], 'edges': []}
-
-    file = open(filename, 'r')
-    lines = file.readlines()
-
-    joined_lines = ''.join(lines)
-
-    json_dump = joined_lines
 
     data = 'var rendru = ' + json_dump
     savefile = open('%s.js' % filename, 'w+')
