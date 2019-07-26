@@ -1,38 +1,59 @@
-# Orbit
+<p align="center">
+  <a href="https://github.com/s0md3v/Orbit"><img src="https://i.ibb.co/bXsZHW0/orbit.png" alt="Orbit"></a>
+  <br>
+  <b>ＯＲＢＩＴ</b>
+</p>
+<h4 align="center">Blockchain Transactions Investigation Tool</h4>
+<p align="center">
+  <a href="https://github.com/s0md3v/Orbit/releases">
+    <img src="https://img.shields.io/github/release/s0md3v/Orbit.svg">
+  </a>
+  <a href="https://github.com/s0md3v/Orbit/issues?q=is%3Aissue+is%3Aclosed">
+      <img src="https://img.shields.io/github/issues-closed-raw/s0md3v/Orbit.svg">
+  <img src="https://img.shields.io/badge/python-> 3.2-blue.svg">
+  </a>
+</p>
 
-Give it a blockchain based crypto wallet address and it will crawl 3 levels deep in transaction data to plot a graph out of the information.
+![graph-demo](https://i.ibb.co/rx76Ryt/Screenshot-2019-07-26-03-41-34.png)
 
-![orbit demo](https://image.ibb.co/kMoLz8/Screenshot_2018_07_10_21_13_30.png)
+### Introduction
+Orbit is designed to explore network of a blockchain wallet by recursively crawling through transaction history. The data is rendered as a graph to reveal major sources, sinks and suspicious connections.
 
-![quark demo](https://image.ibb.co/efGR6o/Screenshot_2018_07_10_21_23_13.png)
+### Usage
 
-## Usage
-Run orbit.py with python3 as follows
-
-`python3 orbit.py`
-
-Enter the wallet address
-
+Let's start by crawling transaction history of a wallet
 ```
-  __         
- |  |  _ |  ' _|_
- |__| |  |) |  |  
- 
-Enter a wallet address: xxxxxxxxxxxxxxx
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F
 ```
-Now orbit will scrape wallets through blockchain API and once its done, a json file will be generated.\
-Next thing is to plot a graph for which we will be using [quark framework](https://github.com/s0md3v/Quark) which is also written by me :D
+Crawling multiple wallets is no different.
+```
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F,1ETBbsHPvbydW7hGWXXKXZ3pxVh3VFoMaX
+```
+Orbit fetches last 50 transactions from each wallet by default, but it can be tuned with `-l` option.
+```
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -l 100
+```
+Orbit's default crawling depth is 3 i.e. it fetches the history of target wallet(s), crawls the newly found wallets and then crawls the wallets in the result again. The crawling depth can be increased or decresead with `-d` option.
+```
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -d 2
+```
+Wallets that have made just a couple of interactions with our target may not be important, Orbit can be told to crawl top N wallets at each level by using the `-t` option.
+```
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -t 20
+```
+This is your terminal dashboard.
 
-Clone Quark and navigate to the Quark directory and feed the json file to quark.py as follows:
+![demo-terminal](https://i.ibb.co/pZG24vT/Screenshot-2019-07-26-08-07-10.png)
 
-`python quark.py /path/to/file.json`
 
-And that's it! Your job is done here, open `quark.html` to see your graph ^_^
+### Visualization
+Once the scan is complete, the graph will automatically open in your default browser. If it doesn't open, open `quark.html` manually.
+Don't worry if your graph looks messy like the one below or worse.
 
-## Warning!
-The size of nodes (dots) and edges (lines) depends on the transactions made by that address to other members of the scope.\
-So the size of nodes can be ridiculosly big but don't get scared, just click on `stabilize` option in the sidebar and leave the rest to quark.\
-Also, if the node lables are getting on the way, click on the `Node Lables` option to turn that off.\
-The last thing is that there are going to be a lot of nodes that aren't interesting like a wallet that has made only one transaction.
-Such nodes will just make your graph ugly. To fix this, click on the `clean` option which will delete such insignificant nodes.
-More information about how to interact with the graph can be found on [Quark's readme](https://github.com/s0md3v/Quark).
+![graph-setup](https://i.ibb.co/xJ38DF9/Screenshot-2019-07-26-08-21-18.png)
+
+Select the **Make Clusters** option to form clusters using community detection algorithm. After that, you can use **Color Clusters** to give different colors to each community and then use **Spacify** option to fix overlapping nodes & edges.
+
+![graph-fixed](https://i.ibb.co/SsGhkJN/Screenshot-2019-07-26-09-21-08.png)
+
+As Orbit uses ![Quark](https://github.com/s0md3v/Quark) to render the graph, more information about the various features and controls is available in Quark's README.

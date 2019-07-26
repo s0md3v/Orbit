@@ -1,113 +1,100 @@
 #!/usr/bin/env python3
 
-import threading
+import os
 import json
 import random
-import urllib3
+import argparse
+import webbrowser
+import concurrent.futures
+
 from time import sleep
-from re import findall
-urllib3.disable_warnings()
-http = urllib3.PoolManager()
 
-addrs_1 = set()
-addrs_2 = set()
-addrs_3 = set()
-edges = []
+from core.utils import getNew
+from core.utils import ranker
+from core.utils import genLocation
+from core.getQuark import getQuark
+from core.prepareGraph import prepareGraph
+from core.getTransactions import getTransactions
+from core.colors import green, white, red, info, run, end
 
-database = {}
+parse = argparse.ArgumentParser()
+parse.add_argument('-s', '--seeds', help='target blockchain address(es)', dest='seeds')
+parse.add_argument('-d', '--depth', help='depth of crawling', dest='depth', type=int, default=3)
+parse.add_argument('-t', '--top', help='number of addresses to crawl from results', dest='top', type=int, default=20)
+parse.add_argument('-l', '--limit', help='maximum number of addresses to fetch from one address', dest='limit', type=int, default=100)
+args = parse.parse_args()
 
-api = 'https://blockchain.info/rawaddr/'
-
-white = '\033[97m'
-green = '\033[92m'
-red = '\033[91m'
-yellow = '\033[93m'
-end = '\033[0m'
-back = '\033[7;91m'
-info = '\033[93m[!]\033[0m'
-que = '\033[94m[?]\033[0m'
-bad = '\033[91m[-]\033[0m'
-good = '\033[32m[+]\033[0m'
-run = '\033[97m[~]\033[0m'
+seeds = args.seeds
+top = args.top
+depth = args.depth
+limit = args.limit
 
 print ('''%s
   __         
  |  |  _ |  ' _|_
- |__| |  |) |  |  
-%s''' % (green, end))
+ |__| |  |) |  |  %sv2.0
+%s''' % (green, white, end))
 
-main = input('%s Enter a wallet address: ' % que)
+database = {}
+processed = set()
 
-database[main] = {}
-database[main]['nSize'] = 0
-database[main]['eTo'] = {}
+seeds = args.seeds.split(',')
 
-def requester(url, addrs_y):
-    response = http.request('GET', api + url).data
-    matches = findall(r'"addr":".*?"', str(response))
-    for match in matches:
-        found = match.split('"')[3]
-        if found in database:
-            database[found]['nSize'] += 1
-        else:
-            database[found] = {}
-            database[found]['nSize'] = 0
-            database[found]['eTo'] = {}
-        if found not in database[url]['eTo']:
-            database[url]['eTo'][found] = 0
-        else:
-            database[url]['eTo'][found] += 1
-        database[url]['nSize'] += 1
-        addrs_y.add(found)
+for seed in seeds:
+    database[seed] = {}
 
-def threader(urls, addrs_y):
-    threads = []
-    for url in urls:
-        task = threading.Thread(target=requester, args=(url, addrs_y))
-        threads.append(task)
+getQuark()
 
-    for thread in threads:
-        thread.start()
+def crawl(addresses, processed, database, limit):
+    threadpool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+    futures = (threadpool.submit(getTransactions, address, processed, database, limit) for address in addresses)
+    for i, _ in enumerate(concurrent.futures.as_completed(futures)):
+        print('%s Progress: %i/%i' % (info, i + 1, len(addresses)), end='\r')
 
-    for thread in threads:
-        thread.join()
-    del threads[:]
+for i in range(depth):
+    print ('%s Crawling level %i' % (run, i + 1))
+    database = ranker(database, top + 1)
+    toBeProcessed = getNew(database, processed)
+    print('%s %i addresses to crawl' % (info, len(toBeProcessed)))
+    crawl(toBeProcessed, processed, database, limit)
 
-def flash(addrs_x, addrs_y):
-    begin = 0
-    end = 4
-    for i in range((int(len(addrs_x)/4)) + 1):
-        threader(list(addrs_x)[begin:end], addrs_y)
-        begin += 4
-        if (len(addrs_x) - end) >= 4:
-            end += 4
-        else:
-            end += len(addrs_x) - begin
+database = ranker(database, top)
 
-threader([main], addrs_1)
-print ('%s %i wallets found from %s wallet.' % (good, len(addrs_1), 1))
-print ('%s Estimated time to crawl: %i seconds' % (info, len(addrs_1) * 2))
-flash(addrs_1, addrs_2)
-print ('%s %i wallets found from %i wallets' % (good, len(addrs_2), len(addrs_1)))
-print ('%s Estimated time to crawl: %i seconds' % (info, len(addrs_2) * 6))
-flash(addrs_2, addrs_3)
-print ('%s %i wallets found from %i wallets' % (good, len(addrs_3), len(addrs_2)))
 jsoned = {'edges':[],'nodes':[]}
 num = 1
 
-print ('%s Total unique btc addresses found: %i' % (good, len(database)))
-
+num = 0
+doneNodes = []
+doneEdges = []
 for node in database:
-    x, y = random.randint(1, 800), random.randint(1, 500)
-    x, y = random.choice([x, x * -1]),random.choice([y, y * -1])
-    jsoned['nodes'].append({'label': node, 'x': x, 'y': y, 'id':'id=' + node, 'size':database[node]['nSize']})
-    for dest in database[node]['eTo']:
-        if node != dest:
-            size = database[node]["eTo"][dest]
-            jsoned['edges'].append({'source':'id=' + node,'target':'id=' + dest,'id':num,"size":size})
+    x, y = genLocation()
+    size = len(database[node])
+    if size > 20:
+        size = 20
+    if node not in doneNodes:
+        doneNodes.append(node)
+        jsoned['nodes'].append({'label': node, 'x': x, 'y': y, 'id':'id=' + node, 'size':size})
+    for childNode in database[node]:
+        uniqueSize = database[node][childNode]
+        if uniqueSize > 20:
+            uniqueSize = 20
+        x, y = genLocation()
+        if childNode not in doneNodes:
+            doneNodes.append(childNode)
+            jsoned['nodes'].append({'label': childNode, 'x': x, 'y': y, 'id':'id=' + childNode, 'size': uniqueSize})
+        if (node + ':' + childNode or childNode + ':' + node) not in doneEdges:
+            doneEdges.extend([(node + ':' + childNode), (childNode + ':' + node)])
+            jsoned['edges'].append({'source':'id=' + childNode, 'target':'id=' + node, 'id':num, "size":uniqueSize/4 if uniqueSize > 3 else uniqueSize})
         num += 1
-render = json.dumps(jsoned).replace(' ', '')
 
-new = open('%s.json' % main, 'w+')
+print('%s Total wallets:%i' % (info, len(jsoned['nodes'])))
+print('%s Total connections:%i' % (info, len(jsoned['edges'])))
+
+render = json.dumps(jsoned).replace(' ', '').replace('\'', '"')
+
+new = open('%s.json' % seeds[0], 'w+')
 new.write(render)
 new.close()
+
+prepareGraph('%s.json' % seeds[0])
+webbrowser.open('file://' + os.getcwd() + '/quark.html')
