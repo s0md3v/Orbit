@@ -97,11 +97,7 @@ print('%s Total connections:%i' % (info, len(jsoned['edges'])))
 
 render = json.dumps(jsoned).replace(' ', '').replace('\'', '"')
 
-new = open('%s.json' % seeds[0], 'w+')
-new.write(render)
-new.close()
-
-prepareGraph('%s.json' % seeds[0])
+prepareGraph('%s.json' % seeds[0], render)
 webbrowser.open('file://' + os.getcwd() + '/quark.html')
 
 if output:
