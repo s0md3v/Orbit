@@ -19,6 +19,8 @@
 ### Introduction
 Orbit is designed to explore network of a blockchain wallet by recursively crawling through transaction history. The data is rendered as a graph to reveal major sources, sinks and suspicious connections.
 
+> **Note:** Orbit only runs on Python 3.2 and above.
+
 ### Usage
 
 Let's start by crawling transaction history of a wallet
