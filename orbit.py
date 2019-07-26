@@ -87,8 +87,8 @@ for node in database:
             jsoned['edges'].append({'source':'id=' + childNode, 'target':'id=' + node, 'id':num, "size":uniqueSize/4 if uniqueSize > 3 else uniqueSize})
         num += 1
 
-print ('%s Total nodes:%i' % (info, len(jsoned['nodes'])))
-print ('%s Total edges:%i' % (info, len(jsoned['edges'])))
+print ('%s Total wallets:%i' % (info, len(jsoned['nodes'])))
+print ('%s Total connections:%i' % (info, len(jsoned['edges'])))
 
 render = json.dumps(jsoned).replace(' ', '').replace('\'', '"')
 
