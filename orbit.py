@@ -48,14 +48,14 @@ getQuark()
 def crawl(addresses, processed, database, limit):
     threadpool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     futures = (threadpool.submit(getTransactions, address, processed, database, limit) for address in addresses)
-    for i in concurrent.futures.as_completed(futures):
-        pass
+    for i, _ in enumerate(concurrent.futures.as_completed(futures)):
+        print('%s Progress: %i/%i' % (info, i + 1, len(addresses)), end='\r')
 
 for i in range(depth):
     print ('%s Crawling level %i' % (run, i + 1))
     database = ranker(database, top + 1)
     toBeProcessed = getNew(database, processed)
-    print ('%s %i addresses to crawl' % (info, len(toBeProcessed)))
+    print('%s %i addresses to crawl' % (info, len(toBeProcessed)))
     crawl(toBeProcessed, processed, database, limit)
 
 database = ranker(database, top)
@@ -87,8 +87,8 @@ for node in database:
             jsoned['edges'].append({'source':'id=' + childNode, 'target':'id=' + node, 'id':num, "size":uniqueSize/4 if uniqueSize > 3 else uniqueSize})
         num += 1
 
-print ('%s Total wallets:%i' % (info, len(jsoned['nodes'])))
-print ('%s Total connections:%i' % (info, len(jsoned['edges'])))
+print('%s Total wallets:%i' % (info, len(jsoned['nodes'])))
+print('%s Total connections:%i' % (info, len(jsoned['edges'])))
 
 render = json.dumps(jsoned).replace(' ', '').replace('\'', '"')
 
