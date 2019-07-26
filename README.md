@@ -43,6 +43,11 @@ Wallets that have made just a couple of interactions with our target may not be 
 ```
 python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -t 20
 ```
+If you want to use the collected data in some other way, you can save it to a JSON file by using the `o` option as follows
+```
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -o output.json
+```
+
 This is your terminal dashboard.
 
 ![demo-terminal](https://i.ibb.co/pZG24vT/Screenshot-2019-07-26-08-07-10.png)
