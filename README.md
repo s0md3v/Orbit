@@ -43,10 +43,15 @@ Wallets that have made just a couple of interactions with our target may not be 
 ```
 python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -t 20
 ```
-If you want to use the collected data in some other way, you can save it to a JSON file by using the `o` option as follows
+If you want to view the collected data with a graph viewer of your choice, you can use -o option.
 ```
-python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -o output.json
+python3 orbit.py -s 1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F -o output.graphml
 ```
+Support Formats
+
+- `graphml` (Supported by most graph viewers)
+- `json` (For raw processing)
+
 
 This is your terminal dashboard.
 
