@@ -13,6 +13,7 @@ from core.utils import getNew
 from core.utils import ranker
 from core.utils import genLocation
 from core.getQuark import getQuark
+from core.exporter import exporter
 from core.prepareGraph import prepareGraph
 from core.getTransactions import getTransactions
 from core.colors import green, white, red, info, run, end
@@ -101,8 +102,9 @@ prepareGraph('%s.json' % seeds[0], render)
 webbrowser.open('file://' + os.getcwd() + '/quark.html')
 
 if output:
+    data = exporter(output, jsoned)
     new = open(output, 'w+')
-    new.write(json.dumps(database, indent=4))
+    new.write(data)
     new.close()
 
 quit()
