@@ -19,15 +19,17 @@ from core.colors import green, white, red, info, run, end
 
 parse = argparse.ArgumentParser()
 parse.add_argument('-s', '--seeds', help='target blockchain address(es)', dest='seeds')
+parse.add_argument('-o', '--output', help='output file to save raw JSON data', dest='output')
 parse.add_argument('-d', '--depth', help='depth of crawling', dest='depth', type=int, default=3)
 parse.add_argument('-t', '--top', help='number of addresses to crawl from results', dest='top', type=int, default=20)
 parse.add_argument('-l', '--limit', help='maximum number of addresses to fetch from one address', dest='limit', type=int, default=100)
 args = parse.parse_args()
 
-seeds = args.seeds
 top = args.top
+seeds = args.seeds
 depth = args.depth
 limit = args.limit
+output = args.output
 
 print ('''%s
   __         
@@ -51,12 +53,15 @@ def crawl(addresses, processed, database, limit):
     for i, _ in enumerate(concurrent.futures.as_completed(futures)):
         print('%s Progress: %i/%i' % (info, i + 1, len(addresses)), end='\r')
 
-for i in range(depth):
-    print ('%s Crawling level %i' % (run, i + 1))
-    database = ranker(database, top + 1)
-    toBeProcessed = getNew(database, processed)
-    print('%s %i addresses to crawl' % (info, len(toBeProcessed)))
-    crawl(toBeProcessed, processed, database, limit)
+try:
+    for i in range(depth):
+        print ('%s Crawling level %i' % (run, i + 1))
+        database = ranker(database, top + 1)
+        toBeProcessed = getNew(database, processed)
+        print('%s %i addresses to crawl' % (info, len(toBeProcessed)))
+        crawl(toBeProcessed, processed, database, limit)
+except KeyboardInterrupt:
+    pass
 
 database = ranker(database, top)
 
@@ -84,7 +89,7 @@ for node in database:
             jsoned['nodes'].append({'label': childNode, 'x': x, 'y': y, 'id':'id=' + childNode, 'size': uniqueSize})
         if (node + ':' + childNode or childNode + ':' + node) not in doneEdges:
             doneEdges.extend([(node + ':' + childNode), (childNode + ':' + node)])
-            jsoned['edges'].append({'source':'id=' + childNode, 'target':'id=' + node, 'id':num, "size":uniqueSize/4 if uniqueSize > 3 else uniqueSize})
+            jsoned['edges'].append({'source':'id=' + childNode, 'target':'id=' + node, 'id':num, "size":uniqueSize/3 if uniqueSize > 3 else uniqueSize})
         num += 1
 
 print('%s Total wallets:%i' % (info, len(jsoned['nodes'])))
@@ -98,3 +103,10 @@ new.close()
 
 prepareGraph('%s.json' % seeds[0])
 webbrowser.open('file://' + os.getcwd() + '/quark.html')
+
+if output:
+    new = open(output, 'w+')
+    new.write(json.dumps(database, indent=4))
+    new.close()
+
+quit()
