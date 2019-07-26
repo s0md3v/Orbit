@@ -51,7 +51,7 @@ def crawl(addresses, processed, database, limit):
     threadpool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     futures = (threadpool.submit(getTransactions, address, processed, database, limit) for address in addresses)
     for i, _ in enumerate(concurrent.futures.as_completed(futures)):
-        print('%s Progress: %i/%i' % (info, i + 1, len(addresses)), end='\r')
+        print('%s Progress: %i/%i        ' % (info, i + 1, len(addresses)), end='\r')
 
 try:
     for i in range(depth):
