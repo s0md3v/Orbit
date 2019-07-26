@@ -18,7 +18,7 @@ from core.getTransactions import getTransactions
 from core.colors import green, white, red, info, run, end
 
 parse = argparse.ArgumentParser()
-parse.add_argument('-a', '--address', help='target blockchain address(es)', dest='seeds')
+parse.add_argument('-s', '--seeds', help='target blockchain address(es)', dest='seeds')
 parse.add_argument('-d', '--depth', help='depth of crawling', dest='depth', type=int, default=3)
 parse.add_argument('-t', '--top', help='number of addresses to crawl from results', dest='top', type=int, default=20)
 parse.add_argument('-l', '--limit', help='maximum number of addresses to fetch from one address', dest='limit', type=int, default=100)
@@ -32,7 +32,7 @@ limit = args.limit
 print ('''%s
   __         
  |  |  _ |  ' _|_
- |__| |  |) |  |  %sv1.1 
+ |__| |  |) |  |  %sv2.0
 %s''' % (green, white, end))
 
 database = {}
